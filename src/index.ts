@@ -797,15 +797,28 @@ function scaled(v: unknown, dFactor: unknown): number | null {
   return Math.round((v / d) * 100) / 100;
 }
 
-function parseCoords(args: Record<string, unknown>): { lat: number; lon: number } | { error: string } {
+// Argument mistakes THROW with the user_error: token (shared/src/error-prefix.ts).
+// They used to be RETURNED as { error }, which the gateway books as a Pipeworx
+// defect (status 200, no upstream): 14 of 32 external calls on 2026-10-18 were
+// latitude=999 or property codes "ph"/"oc", all counted as our bug.
+function parseCoords(args: Record<string, unknown>): { lat: number; lon: number } {
   const lat = typeof args.latitude === 'number' ? args.latitude : NaN;
   const lon = typeof args.longitude === 'number' ? args.longitude : NaN;
   if (!Number.isFinite(lat) || lat < -90 || lat > 90)
-    return { error: 'latitude must be a number between -90 and 90' };
+    throw new Error(`user_error: latitude must be a number between -90 and 90 (got ${String(args.latitude)})`);
   if (!Number.isFinite(lon) || lon < -180 || lon > 180)
-    return { error: 'longitude must be a number between -180 and 180' };
+    throw new Error(`user_error: longitude must be a number between -180 and 180 (got ${String(args.longitude)})`);
   return { lat, lon };
 }
+
+/** Codes callers reach for that SoilGrids names differently. */
+const PROPERTY_ALIASES: Record<string, string> = {
+  ph: 'phh2o',
+  ph_h2o: 'phh2o',
+  oc: 'soc',
+  organic_carbon: 'soc',
+  n: 'nitrogen',
+};
 
 interface SoilGridsDepth {
   label?: string;
@@ -820,21 +833,22 @@ interface SoilGridsLayer {
 
 async function soilProperties(args: Record<string, unknown>): Promise<unknown> {
   const coords = parseCoords(args);
-  if ('error' in coords) return coords;
 
-  const props =
-    Array.isArray(args.properties) && args.properties.length > 0
-      ? args.properties.map((p) => String(p).trim().toLowerCase())
-      : ['clay', 'sand', 'silt', 'phh2o', 'soc'];
+  const props = [
+    ...new Set(
+      (Array.isArray(args.properties) && args.properties.length > 0
+        ? args.properties.map((p) => String(p).trim().toLowerCase())
+        : ['clay', 'sand', 'silt', 'phh2o', 'soc']
+      ).map((p) => PROPERTY_ALIASES[p] ?? p),
+    ),
+  ];
   const invalid = props.filter((p) => !(PROPERTY_CODES as readonly string[]).includes(p));
   if (invalid.length > 0)
-    return {
-      error: `unknown property code(s): ${invalid.join(', ')}. Valid codes: ${PROPERTY_CODES.join(', ')}`,
-    };
+    throw new Error(`user_error: unknown property code(s): ${invalid.join(', ')}. Valid codes: ${PROPERTY_CODES.join(', ')}`);
 
   const depth = (typeof args.depth === 'string' && args.depth.trim()) || '0-5cm';
   if (!(DEPTHS as readonly string[]).includes(depth))
-    return { error: `invalid depth "${depth}". Valid depths: ${DEPTHS.join(', ')}` };
+    throw new Error(`user_error: invalid depth "${depth}". Valid depths: ${DEPTHS.join(', ')}`);
 
   const qs = [
     `lon=${coords.lon}`,
@@ -872,7 +886,6 @@ async function soilProperties(args: Record<string, unknown>): Promise<unknown> {
 
 async function soilClassification(args: Record<string, unknown>): Promise<unknown> {
   const coords = parseCoords(args);
-  if ('error' in coords) return coords;
 
   const res = await pwFetch(
     `${BASE}/classification/query?lon=${coords.lon}&lat=${coords.lat}&number_classes=5`,
