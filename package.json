@@ -1,12 +1,20 @@
 {
   "name": "@pipeworx/mcp-soilgrids",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "ISRIC SoilGrids MCP.",
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./tools.json": "./tools.json",
+    "./package.json": "./package.json"
+  },
   "bin": {
     "mcp-soilgrids": "bin/cli.js"
+  },
+  "files": ["bin/", "lib/", "tools.json", "server.json"],
+  "engines": {
+    "node": ">=18"
   },
   "keywords": ["mcp", "mcp-server", "model-context-protocol", "pipeworx", "soilgrids"],
   "license": "MIT",
@@ -14,19 +22,12 @@
     "type": "git",
     "url": "git+https://github.com/pipeworx-io/mcp-soilgrids.git"
   },
-  "scripts": {
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
-    "tsx": "^4.19.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.9.3",
-    "@cloudflare/workers-types": "^4.20260405.1"
-  },
+  "mcpName": "io.github.pipeworx-io/soilgrids",
   "pipeworx": {
-    "sourceHash": "v1-a69972449e590133e191cf60f0cfc35150f5072d6e47cff2b5d52c19d54dbbfb",
-    "sourceCommit": "0f33463aa47677f38e4f177a4b4a7160dd80819f"
+    "mode": "gateway",
+    "slug": "soilgrids",
+    "gatewaySlug": "soilgrids",
+    "sourceHash": "v1-cffd49884febe674b9ab6faa994779b619f8c9f6ceb366e930d413e28d18c0cc",
+    "sourceCommit": "f47d581679e1e887373df51ba623f891fbe4c464"
   }
 }
