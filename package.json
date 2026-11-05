@@ -1,6 +1,6 @@
 {
   "name": "@pipeworx/mcp-soilgrids",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "ISRIC SoilGrids MCP.",
   "type": "module",
   "main": "lib/index.js",
@@ -27,7 +27,7 @@
     "mode": "gateway",
     "slug": "soilgrids",
     "gatewaySlug": "soilgrids",
-    "sourceHash": "v1-cffd49884febe674b9ab6faa994779b619f8c9f6ceb366e930d413e28d18c0cc",
-    "sourceCommit": "f47d581679e1e887373df51ba623f891fbe4c464"
+    "sourceHash": "v1-4e9a47b5cb2760d747b26ac79438eb82ad070fcc8dded6a3b5ffe48a324c53a0",
+    "sourceCommit": "8fc802aa5e23be625ce08d97178f5676c7bc93f3"
   }
 }
